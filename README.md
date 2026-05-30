@@ -2,6 +2,41 @@
 
 OpenWrt LuCI 管理界面，用于 **dae** 和 **daed** 透明代理后端。
 
+<p align="center">
+  <img src="https://raw.githubusercontent.com/daeuniverse/dae/main/logo.png" width="180" alt="dae">
+  &nbsp;&nbsp;&nbsp;
+  <img src="https://raw.githubusercontent.com/daeuniverse/daed/main/apps/web/public/logo-rounded.png" width="180" alt="daed">
+</p>
+
+## 界面预览
+
+<details open>
+<summary><b>Desktop Screenshots</b></summary>
+<br>
+<table>
+<tr>
+<td align="center"><b>dae Config</b><br><img width="400" src="https://raw.githubusercontent.com/kenzok8/kenzok8/main/screenshot/daede/dae-config.png"></td>
+<td align="center"><b>daed Config</b><br><img width="400" src="https://raw.githubusercontent.com/kenzok8/kenzok8/main/screenshot/daede/daed-config.png"></td>
+</tr>
+<tr>
+<td align="center"><b>Updates</b><br><img width="400" src="https://raw.githubusercontent.com/kenzok8/kenzok8/main/screenshot/daede/daede-updates.png"></td>
+<td align="center"><b>Log</b><br><img width="400" src="https://raw.githubusercontent.com/kenzok8/kenzok8/main/screenshot/daede/daede-log.png"></td>
+</tr>
+</table>
+</details>
+
+<details>
+<summary><b>Mobile Screenshots</b></summary>
+<br>
+<table>
+<tr>
+<td align="center"><b>Config</b><br><img width="200" src="https://raw.githubusercontent.com/kenzok8/kenzok8/main/screenshot/daede/mobile-daede-config.png"></td>
+<td align="center"><b>Updates</b><br><img width="200" src="https://raw.githubusercontent.com/kenzok8/kenzok8/main/screenshot/daede/mobile-daede-updates.png"></td>
+<td align="center"><b>Log</b><br><img width="200" src="https://raw.githubusercontent.com/kenzok8/kenzok8/main/screenshot/daede/mobile-daede-log.png"></td>
+</tr>
+</table>
+</details>
+
 ## 安装
 
 ### 一键安装
@@ -44,35 +79,6 @@ wget -O - https://raw.githubusercontent.com/kenzok8/luci-app-daede/refs/heads/ma
 1. 安装后进入 LuCI「服务 → daede」
 2. 选择后端（dae 或 daed）
 3. 导入配置文件并启动
-
-## 界面预览
-
-<details open>
-<summary><b>Desktop Screenshots</b></summary>
-<br>
-<table>
-<tr>
-<td align="center"><b>dae Config</b><br><img width="400" src="https://raw.githubusercontent.com/kenzok8/kenzok8/main/screenshot/daede/dae-config.png"></td>
-<td align="center"><b>daed Config</b><br><img width="400" src="https://raw.githubusercontent.com/kenzok8/kenzok8/main/screenshot/daede/daed-config.png"></td>
-</tr>
-<tr>
-<td align="center"><b>Updates</b><br><img width="400" src="https://raw.githubusercontent.com/kenzok8/kenzok8/main/screenshot/daede/daede-updates.png"></td>
-<td align="center"><b>Log</b><br><img width="400" src="https://raw.githubusercontent.com/kenzok8/kenzok8/main/screenshot/daede/daede-log.png"></td>
-</tr>
-</table>
-</details>
-
-<details>
-<summary><b>Mobile Screenshots</b></summary>
-<br>
-<table>
-<tr>
-<td align="center"><b>Config</b><br><img width="200" src="https://raw.githubusercontent.com/kenzok8/kenzok8/main/screenshot/daede/mobile-daede-config.png"></td>
-<td align="center"><b>Updates</b><br><img width="200" src="https://raw.githubusercontent.com/kenzok8/kenzok8/main/screenshot/daede/mobile-daede-updates.png"></td>
-<td align="center"><b>Log</b><br><img width="200" src="https://raw.githubusercontent.com/kenzok8/kenzok8/main/screenshot/daede/mobile-daede-log.png"></td>
-</tr>
-</table>
-</details>
 
 ## 依赖
 
