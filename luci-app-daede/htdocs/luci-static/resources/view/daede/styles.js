@@ -18,7 +18,7 @@ const CSS = [
 	'.dd-actions{display:flex;flex-wrap:wrap;gap:6px;margin:8px 0 0}',
 	'.dd-actions .cbi-button{font-size:11.5px;padding:4px 12px;border-radius:5px}',
 	'.dd-actions a.cbi-button{display:inline-flex;align-items:center;gap:4px}',
-	'.dd-wrap .cbi-button{font-size:11px !important;padding:4px 12px !important;border-radius:5px !important;border:1px solid rgba(128,128,128,.35) !important;background:transparent !important;color:inherit !important;box-shadow:none !important;cursor:pointer;white-space:nowrap}',
+	'.dd-wrap .cbi-button{font-size:11px !important;line-height:1.4 !important;min-height:0 !important;height:auto !important;padding:4px 12px !important;border-radius:5px !important;border:1px solid rgba(128,128,128,.35) !important;background:transparent !important;color:inherit !important;box-shadow:none !important;cursor:pointer;white-space:nowrap}',
 	'.dd-wrap .cbi-button:hover{background:rgba(128,128,128,.12) !important}',
 	'.dd-wrap .cbi-button:disabled{opacity:.45;cursor:not-allowed}',
 	'.dd-wrap .cbi-button-action,.dd-wrap .cbi-button-positive,.dd-wrap .cbi-button-add,.dd-wrap .cbi-button-edit{border-color:#4aa065 !important;color:#4aa065 !important}',
@@ -65,6 +65,9 @@ const CSS = [
 	   across themes (Argon's auto layout otherwise sizes the empty Nodes table
 	   by content, and even ignores px cell widths, so they drift apart) */
 	'.dd-settings-card .cbi-section-table{table-layout:fixed !important;width:100%}',
+	/* flatten the table header: Argon tints header cells (#f6f9fc), which reads
+	   as an off-colour band on the white card — keep it transparent */
+	'.dd-settings-card .cbi-section-table-titles,.dd-settings-card .cbi-section-table-titles .cbi-section-table-cell{background:transparent !important;background-image:none !important}',
 	'.dd-settings-card .cbi-section-table-cell:nth-child(1){width:14% !important}',
 	'.dd-settings-card .cbi-section-table-cell:nth-child(2){width:50% !important;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}',
 	'.dd-settings-card .cbi-section-table-cell:nth-child(3){width:12% !important}',
