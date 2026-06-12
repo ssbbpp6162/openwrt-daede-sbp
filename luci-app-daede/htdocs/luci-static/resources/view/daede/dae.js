@@ -300,57 +300,73 @@ function renderDaeForms(ctx) {
 		statusTimer = setTimeout(function() { status.classList.remove('show'); }, hold || 3000);
 	}
 
-	const save = E('button', { 'class': 'cbi-button cbi-button-positive' }, _('Save and Hot Reload'));
+	/* one save pipeline, parameterised by intent:
+	   - opts.start: after generate, enable + start dae (stopped → "Save and Start")
+	   - otherwise just save + generate; generate hot-reloads itself when dae runs */
+	function doSave(opts, btns) {
+		btns.forEach(function(b) { b.disabled = true; });
+		flash(_('Saving…'));
+		/* ensure the singleton sections exist before parsing the form —
+		   on installs where uci-defaults never seeded them, writing an
+		   option to a missing named section fails with ubus NOT_FOUND (4) */
+		if (!uci.get('dae', 'routing')) uci.add('dae', 'routing', 'routing');
+		if (!uci.get('dae', 'dns'))     uci.add('dae', 'dns', 'dns');
+		if (!uci.get('dae', 'config'))  uci.add('dae', 'dae', 'config');
+		return m.save(null, true)
+			.then(function() {
+				/* assign unique tags to any rows the user left blank */
+				autofillTags('subscription', 'subscription');
+				autofillTags('node', 'node');
+			})
+			.then(function() { return uci.save(); })
+			.then(function() {
+				/* apply flushes the rpc session to /etc/config so the
+				   generator (reads /etc/config/dae) sees the form data;
+				   skip it when nothing changed — apply on an empty
+				   changeset throws ubus NO_DATA (code 5). */
+				return uci.changes().then(function(ch) {
+					return (ch && Object.keys(ch).length) ? uci.apply() : null;
+				});
+			})
+			.then(function() { return fs.exec(GEN, ['generate']); })
+			.then(function(res) {
+				if (res && res.code !== 0) {
+					const err = (res.stderr || res.stdout || ('exit ' + res.code)).trim().split('\n')[0];
+					flash(_('Apply failed: %s').format(err), 'err', 9000);
+					throw new Error('gen-failed');
+				}
+				if (!opts.start) {
+					/* generate already hot-reloaded if dae was running */
+					flash(opts.okMsg || _('Saved'), 'ok');
+					setTimeout(function() { window.location.reload(); }, 900);
+					return;
+				}
+				flash(_('Starting…'));
+				return fs.exec('/sbin/uci', ['set', 'dae.config.enabled=1'])
+					.then(function() { return fs.exec('/sbin/uci', ['commit', 'dae']); })
+					.then(function() { return fs.exec(backend.BACKENDS.dae.initd, ['enable']); })
+					.then(function() { return fs.exec(backend.BACKENDS.dae.initd, ['start']); })
+					.then(function(r2) {
+						if (r2 && r2.code !== 0)
+							flash(_('Start failed: %s').format(r2.stderr || r2.stdout || ('exit ' + r2.code)), 'err', 9000);
+						else {
+							flash(_('Saved · started'), 'ok');
+							setTimeout(function() { window.location.reload(); }, 900);
+						}
+					});
+			})
+			.catch(function(e) {
+				if (e && e.message === 'gen-failed') return;
+				if (e && e.name === 'CBIValidationError') {
+					flash(_('Please fix the highlighted fields.'), 'err', 6000);
+					return;
+				}
+				flash(_('Save failed: %s').format(e.message || e), 'err', 9000);
+			})
+			.finally(function() { btns.forEach(function(b) { b.disabled = false; }); });
+	}
 
 	return m.render().then(function(mapNode) {
-		save.addEventListener('click', function(ev) {
-			ev.preventDefault();
-			save.disabled = true;
-			flash(_('Saving…'));
-			/* ensure the singleton sections exist before parsing the form —
-			   on installs where uci-defaults never seeded them, writing an
-			   option to a missing named section fails with ubus NOT_FOUND (4) */
-			if (!uci.get('dae', 'routing')) uci.add('dae', 'routing', 'routing');
-			if (!uci.get('dae', 'dns'))     uci.add('dae', 'dns', 'dns');
-			if (!uci.get('dae', 'config'))  uci.add('dae', 'dae', 'config');
-			/* commit dae UCI (apply flushes the rpc session to /etc/config,
-			   which a CLI `uci commit` cannot see), then regenerate + hot reload */
-			m.save(null, true)
-				.then(function() {
-					/* assign unique tags to any rows the user left blank */
-					autofillTags('subscription', 'subscription');
-					autofillTags('node', 'node');
-				})
-				.then(function() { return uci.save(); })
-				.then(function() {
-					/* apply flushes the rpc session to /etc/config so the
-					   generator (reads /etc/config/dae) sees the form data;
-					   skip it when nothing changed — apply on an empty
-					   changeset throws ubus NO_DATA (code 5). */
-					return uci.changes().then(function(ch) {
-						return (ch && Object.keys(ch).length) ? uci.apply() : null;
-					});
-				})
-				.then(function() { return fs.exec(GEN, ['generate']); })
-				.then(function(res) {
-					if (res && res.code !== 0) {
-						const err = (res.stderr || res.stdout || ('exit ' + res.code)).trim().split('\n')[0];
-						flash(_('Apply failed: %s').format(err), 'err', 9000);
-						return;
-					}
-					/* reload to reflect committed state and clear the change badge */
-					flash(_('Saved · validated · hot-reloaded'), 'ok');
-					setTimeout(function() { window.location.reload(); }, 900);
-				})
-				.catch(function(e) {
-					if (e && e.name === 'CBIValidationError') {
-						flash(_('Please fix the highlighted fields.'), 'err', 6000);
-						return;
-					}
-					flash(_('Save failed: %s').format(e.message || e), 'err', 9000);
-				})
-				.finally(function() { save.disabled = false; });
-		});
 
 		/* area-level "Update all subscriptions" — dae re-pulls every subscription
 		   on hot reload, so the action is global, not per-row */
@@ -423,9 +439,31 @@ function renderDaeForms(ctx) {
 				_('Add a subscription or node, then save — it takes effect automatically.'))
 		];
 		cardChildren.push(mapNode);
-		cardChildren.push(E('div', { 'class': 'dd-editor-actions' }, [ save, status ]));
 
-		return E('div', { 'class': 'dd-card dd-settings-card' }, cardChildren);
+		/* state-aware primary action: running → one "Save and Apply"; stopped →
+		   "Save config" (secondary) + "Save and Start" (primary). Starting the
+		   proxy is an explicit choice, never an implicit side effect of saving. */
+		return backend.detectRunning().then(function(rr) {
+			const running = rr && rr.dae;
+			const actions = [];
+			let btns;
+			if (running) {
+				const apply = E('button', { 'class': 'cbi-button cbi-button-positive' }, _('Save and Apply'));
+				btns = [ apply ];
+				apply.addEventListener('click', function(ev) { ev.preventDefault(); doSave({ okMsg: _('Saved · applied') }, btns); });
+				actions.push(apply);
+			} else {
+				const saveOnly = E('button', { 'class': 'cbi-button' }, _('Save config'));
+				const saveStart = E('button', { 'class': 'cbi-button cbi-button-positive' }, _('Save and Start'));
+				btns = [ saveOnly, saveStart ];
+				saveOnly.addEventListener('click', function(ev) { ev.preventDefault(); doSave({ okMsg: _('Saved') }, btns); });
+				saveStart.addEventListener('click', function(ev) { ev.preventDefault(); doSave({ start: true }, btns); });
+				actions.push(saveOnly, saveStart);
+			}
+			actions.push(status);
+			cardChildren.push(E('div', { 'class': 'dd-editor-actions' }, actions));
+			return E('div', { 'class': 'dd-card dd-settings-card' }, cardChildren);
+		});
 	});
 }
 
