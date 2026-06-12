@@ -247,8 +247,10 @@ jobs:
           GH_TOKEN: ${{ github.token }}
           REPO: ${{ github.repository }}
         run: |
+          # only prune version releases (v*); never the pinned-source releases
+          # (dae-src / daed-src) the packages download their tarballs from
           gh release list -R "$REPO" --limit 100 --json tagName,createdAt \
-            --jq 'sort_by(.createdAt) | reverse | .[6:] | .[].tagName' > old_tags.txt
+            --jq '[.[] | select(.tagName | startswith("v"))] | sort_by(.createdAt) | reverse | .[6:] | .[].tagName' > old_tags.txt
           if [ ! -s old_tags.txt ]; then
             echo "Releases <= 6, nothing to prune."
             exit 0
