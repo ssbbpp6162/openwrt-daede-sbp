@@ -43,6 +43,11 @@ jobs:
           fetch_at https://github.com/daeuniverse/dae-wing "$OUT/wing" "$WING_COMMIT"
           rm -rf "$OUT/wing/dae-core"
           fetch_at https://github.com/kenzok8/dae "$OUT/wing/dae-core" "$CORE_COMMIT"
+          # route A: merge upstream dae main onto the frozen olicesx perf base so the
+          # core tracks official while keeping the eBPF/perf fork. A merge conflict
+          # fails the build (gate) and signals a manual rebase is needed.
+          git -C "$OUT/wing/dae-core" fetch --no-tags https://github.com/daeuniverse/dae "$CORE_UPSTREAM_COMMIT"
+          git -C "$OUT/wing/dae-core" -c user.email=ci@local -c user.name=ci merge --no-edit "$CORE_UPSTREAM_COMMIT"
           git -C "$OUT/wing/dae-core" submodule update --init
           fetch_at https://github.com/kenzok8/outbound "$OUT/outbound" "$OUTBOUND_COMMIT"
           # quic-go: fetch the base, then apply our self-owned perf patches instead
@@ -76,7 +81,7 @@ jobs:
           # name (idempotent), different content gets a different name - so a
           # second assemble on the same date never clobbers an older tarball
           # that older commits still reference via PKG_HASH.
-          SRC_ID=$(printf '%s' "${DAED_COMMIT}${WING_COMMIT}${CORE_COMMIT}${OUTBOUND_COMMIT}${QUICGO_BASE_COMMIT}" | sha256sum | cut -c1-12)
+          SRC_ID=$(printf '%s' "${DAED_COMMIT}${WING_COMMIT}${CORE_COMMIT}${CORE_UPSTREAM_COMMIT}${OUTBOUND_COMMIT}${QUICGO_BASE_COMMIT}" | sha256sum | cut -c1-12)
           TARBALL="daed-src-${DAED_VERSION}-${SRC_ID}.tar.gz"
           tar --numeric-owner --owner=0 --group=0 --sort=name -czf "$TARBALL" "$OUT"
           echo "PKG_HASH=$(sha256sum "$TARBALL" | cut -d' ' -f1)" >> "$GITHUB_ENV"
