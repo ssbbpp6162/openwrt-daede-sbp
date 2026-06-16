@@ -961,3 +961,27 @@ msgstr "备份 / 还原整个 daede 配置（不含内核）"
 
 msgid "Import overwrites the current daede config and restarts the backend. Continue?"
 msgstr "导入会覆盖当前 daede 配置并重启后端，确定继续？"
+
+msgid "Data Source"
+msgstr "数据源"
+
+msgid "Custom"
+msgstr "自定义"
+
+msgid "Auto-update"
+msgstr "自动更新"
+
+msgid "Daily"
+msgstr "每天"
+
+msgid "Weekly"
+msgstr "每周"
+
+msgid "Save"
+msgstr "保存"
+
+msgid "Geo data source saved."
+msgstr "数据源已保存。"
+
+msgid "Save failed"
+msgstr "保存失败"
