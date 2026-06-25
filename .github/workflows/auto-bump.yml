@@ -66,8 +66,8 @@ jobs:
           GH_TOKEN: ${{ secrets.FORK_SYNC_TOKEN }}
         run: |
           gh repo sync kenzok8/outbound -b perf/complete-optimizations --source olicesx/outbound --force
-          # dae core: NOT synced from olicesx — CORE_COMMIT is a frozen olicesx perf
-          # base and upstream dae main is merged on top at assemble time (route A).
+          # dae core: mirror kdae as delete-insurance; build still pins frozen CORE_COMMIT (an ancestor of kdae), so output is unchanged.
+          gh repo sync kenzok8/dae -b kdae --source olicesx/dae --force
           # quic-go: NOT synced — base pinned, perf applied from ci/patches/quic-go.
 
       - name: Stage new pins
