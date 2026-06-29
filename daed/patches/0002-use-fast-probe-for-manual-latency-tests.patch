@@ -1,0 +1,25 @@
+From: kenzok8 <kenzok8@noreply>
+Date: 2026-06-29
+Subject: [PATCH] daed: use bounded probes for manual latency tests
+
+The dashboard "test all nodes" action waits for the GraphQL mutation to finish.
+The old path used ProbeLatency(), which runs the normal health-check path:
+10s timeout, up to two attempts, for both TCP4 and TCP6. With many dead or slow
+nodes this keeps the dashboard button spinning for a long time.
+
+Use ProbeLatencyFast() for manual dashboard tests. It already exists upstream,
+has a 1.5s per-family timeout, and does not mutate the background health state.
+
+Reported: https://github.com/kenzok8/openwrt-daede/issues/20
+---
+--- a/graphql/service/node/latency_mutation_utils.go
++++ b/graphql/service/node/latency_mutation_utils.go
+@@ -108,7 +108,7 @@ func testSingleNodeLatency(option *diale
+ 	}
+ 	defer d.Close()
+ 
+-	result, err := d.ProbeLatency()
++	result, err := d.ProbeLatencyFast()
+ 	if err != nil {
+ 		msg := err.Error()
+ 		resolver.MessageV = &msg
