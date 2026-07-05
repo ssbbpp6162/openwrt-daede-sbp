@@ -63,6 +63,12 @@ resolve_geodata() {
 }
 
 detect_manager() {
+  sdk="$(detect_sdk || true)"
+  case "$sdk" in
+    2[5-9].*|[3-9][0-9].*)
+      if command -v apk >/dev/null 2>&1; then echo apk; return; fi
+      ;;
+  esac
   if command -v opkg >/dev/null 2>&1; then echo opkg; return; fi
   if command -v apk >/dev/null 2>&1; then echo apk; return; fi
   echo "unsupported"
@@ -149,6 +155,12 @@ resolve_from_manifest() {
       file="$(manifest_value "$pkg")"
       if [ -z "$file" ]; then
         echo "Manifest has no entry for '$pkg' on ${sdk}/${arch}"
+        ok=0
+        break
+      fi
+      file_ext="${file##*.}"
+      if [ "$file_ext" != "$EXT" ]; then
+        echo "Manifest entry for '$pkg' on ${sdk}/${arch} is .${file_ext}, but ${PM} needs .${EXT}; skipping"
         ok=0
         break
       fi
