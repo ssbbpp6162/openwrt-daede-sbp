@@ -388,14 +388,35 @@ else
 fi
 
 echo "Installing (core first, then LuCI)..."
+_install_rc=0
 if [ "$PM" = "opkg" ]; then
   # shellcheck disable=SC2086
-  opkg install $FILES
+  opkg install $FILES || _install_rc=$?
 else
   echo "[WARN] no stable signing key yet, using --allow-untrusted; sha256 is verified above when the manifest provides it."
   # shellcheck disable=SC2086
-  apk add --allow-untrusted $FILES
+  apk add --allow-untrusted $FILES || _install_rc=$?
 fi
+
+if [ "$_install_rc" -ne 0 ]; then
+  echo "[ERROR] Package install failed (exit $_install_rc). daed/dae was NOT installed."
+  echo "        Most common cause: unmet dependencies (v2ray-geoip / v2ray-geosite / kmod-*)."
+  echo "        Run 'opkg update' first, ensure those deps are reachable, then retry."
+  exit "$_install_rc"
+fi
+
+# opkg/apk can exit 0 yet skip the core package on a dependency hiccup, leaving
+# no /usr/bin/daed while still printing success (issue #30). Verify it landed.
+case "$DAEDE_CORE" in
+  daed|both)
+    [ -x /usr/bin/daed ] || { echo "[ERROR] Install finished but /usr/bin/daed is missing — a dependency was likely skipped; check the 'opkg install' output above."; exit 1; }
+    ;;
+esac
+case "$DAEDE_CORE" in
+  dae|both)
+    [ -x /usr/bin/dae ] || { echo "[ERROR] Install finished but /usr/bin/dae is missing — a dependency was likely skipped; check the 'opkg install' output above."; exit 1; }
+    ;;
+esac
 
 echo "Install complete."
 
